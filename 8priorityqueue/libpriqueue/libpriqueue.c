@@ -35,49 +35,54 @@ void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
 
+// new node we want to add
   _node *new_node = malloc(sizeof(_node*));
   new_node->ptr = ptr;
 
-  if(q->size == 0) {
+  _node *temp;
+  _node *temp_before;
+
+  int index = 0;
+
+// 	if the queue is empty, we just add the node to the front
+  if(q->head == NULL) {
     new_node->next = NULL;
     q->head = new_node;
     q->size++;
-    return 0;
+    // return 0;
   }
+// if the node is higher priority than the head, we add it to the front
+  else if(q->comparer(new_node->ptr, q->head->ptr) < 0) {
+    new_node->next = q->head;
+    q->head = new_node;
+    q->size++;
+  }
+// 
   else {
-    _node *temp = q->head;
-    _node *temp_before;
-    for (size_t i = 0; i < q->size; i++) {
-      if(temp == NULL) {
-        temp_before->next = new_node;
-        new_node->next = NULL;
-        q->size++;
-        return i;
-      }
-      if(q->comparer(temp->ptr, ptr) > 0) {
-        if(temp == q->head) {
-          new_node->next = temp;
-          q->head = new_node;
-          q->size++;
-          return 0;
-        }
-        else {
-          temp_before->next = new_node;
-          new_node->next = temp;
-          q->size++;
-          return i;
-        }
-      }
+    temp_before = q->head;
+    temp = temp_before->next;
+// 	  loops through the queue until it either gets to the end or we find a node that we are higher priority than
 
+    while(temp!=NULL && q->comparer(new_node->ptr, temp->ptr) > 0) {
       temp_before = temp;
       temp = temp->next;
+      index++;
     }
-    // free(temp);
-    // free(temp_before);
-
+// if we are adding to the last node
+    if(temp == NULL) {
+      temp_before->next = new_node;
+      new_node->next = NULL;
+    }
+// 	  if we are adding somehwere in the middle
+    else {
+      new_node->next = temp;
+      temp_before->next = new_node;
+    }
+    q->size++;
   }
 
-  free(new_node);
+  return index;
+
 }
 
 
